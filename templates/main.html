@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    Yo wassup
+    <p class="nameclass"></p>
+  </body>
+  <script>
+    function getCookie(name) {
+      const cookies = document.cookie.split("; ");
+      for (let cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === name) {
+          return decodeURIComponent(value);
+        }
+      }
+      return null;
+    }
+    const myCookie = getCookie("name");
+    console.log(myCookie);
+    text = document.querySelector(".nameclass");
+    text.innerText = myCookie;
+  </script>
+</html>
