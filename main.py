@@ -1,26 +1,29 @@
+# imports
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import sqlite3
 import jwt
 from functools import wraps
 import datetime
+#vars
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 DB_PATH = './users.db'
-
+# connecting to db
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+# middleware 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        token = request.cookies.get('token')  # Retrieve token from cookies
+        token = request.cookies.get('token')  # get cookie from request
         if not token:
             return redirect(url_for('login'))
 
         try:
-            jwt.decode(token, app.secret_key, algorithms=['HS256'])  # Validate token
+            jwt.decode(token, app.secret_key, algorithms=['HS256'])  # validate token
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token expired'}), 401
         except jwt.InvalidTokenError:
@@ -54,18 +57,20 @@ def login():
         return jsonify({'error': 'Invalid credentials'}), 401
 
     return render_template('login.html')
-
+# register route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # getting data from form
         username = request.form['username']
         password = request.form['password']
-
+        # handling their existence
         if not username or not password:
             return jsonify({'error': 'Username and password are required'}), 400
-
+        # getting connection
         conn = get_db_connection()
         try:
+            # adding users to the db
             conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
             conn.commit()
         except sqlite3.IntegrityError:
@@ -76,7 +81,7 @@ def register():
         return jsonify({'message': 'Registration successful'})
 
     return render_template('register.html')
-
+# authenticated roujte
 @app.route('/home', methods=['GET'])
 @login_required
 def home():
@@ -92,7 +97,7 @@ def init_db():
         )
     ''')
     conn.close()
-
+# starting the flask app
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
